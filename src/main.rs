@@ -1,4 +1,8 @@
-use sfml::{graphics::{RenderTarget, RenderWindow, Color, RectangleShape, Shape, Transformable, View}, window::{Event, Key, Style, ContextSettings}, system::{Vector2i, Vector2f, Vector2, Time, Clock}};
+use sfml::{
+    graphics::{Color, RectangleShape, RenderTarget, RenderWindow, Shape, Transformable, View},
+    system::{Clock, Time, Vector2, Vector2f, Vector2i},
+    window::{ContextSettings, Event, Key, Style},
+};
 
 struct BoolGrid2D {
     array: Vec<bool>,
@@ -11,7 +15,7 @@ impl BoolGrid2D {
         BoolGrid2D {
             array: vec![false; width * height],
             width,
-            height
+            height,
         }
     }
 
@@ -35,7 +39,7 @@ struct Game {
     simulation_grid: BoolGrid2D,
     paused: bool,
     cell_size: Vector2f,
-    cell_color: Color
+    cell_color: Color,
 }
 
 impl Game {
@@ -45,19 +49,23 @@ impl Game {
             simulation_grid: BoolGrid2D::new(width, height),
             paused: false,
             cell_size: Vector2f::new(10.0, 10.0),
-            cell_color: Color::rgb(255, 255, 255)
+            cell_color: Color::rgb(255, 255, 255),
         }
     }
 
     fn get_cell_below_position(&self, position: Vector2f) -> Vector2<usize> {
         Vector2::new(
             (position.x / self.cell_size.x).floor() as usize,
-            (position.y / self.cell_size.y).floor() as usize
+            (position.y / self.cell_size.y).floor() as usize,
         )
     }
 
     fn toggle_cell(&mut self, position: Vector2<usize>) {
-        self.grid.set(position.x, position.y, !self.grid.get(position.x, position.y));
+        self.grid.set(
+            position.x,
+            position.y,
+            !self.grid.get(position.x, position.y),
+        );
     }
 
     fn get_neighbors_count(&self, x: usize, y: usize) -> i32 {
@@ -67,20 +75,36 @@ impl Game {
         let grid_height = self.grid.height;
 
         // Check top and bottom
-        if y != 0 && self.grid.get(x, y - 1) { count += 1 }
-        if y != grid_height - 1 && self.grid.get(x, y + 1) { count += 1 }
+        if y != 0 && self.grid.get(x, y - 1) {
+            count += 1
+        }
+        if y != grid_height - 1 && self.grid.get(x, y + 1) {
+            count += 1
+        }
 
         // Check right and left
-        if x != grid_width - 1 && self.grid.get(x + 1, y) { count += 1 }
-        if x != 0 && self.grid.get(x - 1, y) { count += 1 }
+        if x != grid_width - 1 && self.grid.get(x + 1, y) {
+            count += 1
+        }
+        if x != 0 && self.grid.get(x - 1, y) {
+            count += 1
+        }
 
         // Check top left and top right
-        if x != 0 && y != 0 && self.grid.get(x - 1, y - 1) { count += 1 }
-        if x != grid_width - 1 && y != 0 && self.grid.get(x + 1, y - 1) { count += 1 }
+        if x != 0 && y != 0 && self.grid.get(x - 1, y - 1) {
+            count += 1
+        }
+        if x != grid_width - 1 && y != 0 && self.grid.get(x + 1, y - 1) {
+            count += 1
+        }
 
         // Check bottom right and bottom left
-        if x != grid_width - 1 && y != grid_height - 1 && self.grid.get(x + 1, y + 1) { count += 1 }
-        if x != 0 && y != grid_height - 1 && self.grid.get(x - 1, y + 1) { count += 1 }
+        if x != grid_width - 1 && y != grid_height - 1 && self.grid.get(x + 1, y + 1) {
+            count += 1
+        }
+        if x != 0 && y != grid_height - 1 && self.grid.get(x - 1, y + 1) {
+            count += 1
+        }
 
         count
     }
@@ -91,22 +115,24 @@ impl Game {
 
     fn process_event(&mut self, event: &Event, window: &RenderWindow) {
         match event {
-            Event::MouseButtonPressed{x, y, ..} => {
-                let mouse_pos = window.map_pixel_to_coords(Vector2i::new(*x, *y), window.view()); 
+            Event::MouseButtonPressed { x, y, .. } => {
+                let mouse_pos = window.map_pixel_to_coords(Vector2i::new(*x, *y), window.view());
                 let cell_pos = self.get_cell_below_position(mouse_pos);
                 self.toggle_cell(cell_pos);
-            },
-            Event::KeyPressed{code, ..} => {
+            }
+            Event::KeyPressed { code, .. } => {
                 if Key::SPACE == *code {
                     self.paused = !self.paused;
                 }
             }
-            _ => ()
+            _ => (),
         }
     }
 
     fn update(&mut self) {
-        if self.paused { return }
+        if self.paused {
+            return;
+        }
 
         let grid = &self.grid;
 
@@ -149,10 +175,8 @@ impl Game {
         for y in 0..grid.height {
             for x in 0..grid.width {
                 if grid.get(x, y) {
-                    cell_shape.set_position(
-                        (x as f32 * self.cell_size.x,
-                        y as f32 * self.cell_size.y)
-                    );
+                    cell_shape
+                        .set_position((x as f32 * self.cell_size.x, y as f32 * self.cell_size.y));
                     target.draw(&cell_shape);
                 }
             }
@@ -167,13 +191,13 @@ fn main() {
         (400, 400),
         "Conway's Game of Life",
         Style::DEFAULT,
-        &ContextSettings::default()
+        &ContextSettings::default(),
     );
 
     window.set_framerate_limit(30);
     window.set_view(&View::new(
         Vector2f::new(200.0, 200.0),
-        Vector2f::new(400.0, 400.0)
+        Vector2f::new(400.0, 400.0),
     ));
 
     let mut elapsed = Time::ZERO;
@@ -188,7 +212,7 @@ fn main() {
 
             match event {
                 Event::Closed => window.close(),
-                _ => ()
+                _ => (),
             }
         }
 
